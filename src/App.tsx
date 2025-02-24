@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /* eslint-disable max-len */
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import React, { useState, useEffect, useRef } from 'react';

@@ -50,13 +50,13 @@ const TodoItem: React.FC<TodoItemProps> = ({
       setIsLoading(true);
       try {
         await onDelete(todo.id);
-        setIsEditing(false); // Close only on success
+        setIsEditing(false); // Close only on successful deletion
       } catch (error: unknown) {
         console.error('Error deleting todo:', error);
         onError('Unable to delete a todo');
-        setIsEditing(true); // Keep edit mode active
+        setIsEditing(true); // Ensure edit mode stays active on failure
         setEditTitle(''); // Reflect the empty state
-        // Ensure the input stays focused after failure
+        // Keep input focused after failure
         setTimeout(() => {
           if (inputRef.current) {
             inputRef.current.focus();
@@ -64,7 +64,7 @@ const TodoItem: React.FC<TodoItemProps> = ({
           }
         }, 0);
       } finally {
-        setIsLoading(false); // Hide loader regardless of success/failure
+        setIsLoading(false); // Hide loader regardless of success or failure
       }
 
       return;
@@ -79,7 +79,7 @@ const TodoItem: React.FC<TodoItemProps> = ({
     setIsLoading(true);
     try {
       await onSave(todo.id, trimmedTitle);
-      setIsEditing(false);
+      setIsEditing(false); // Close on successful save
     } catch (error: unknown) {
       console.error('Error saving todo:', error);
       onError('Unable to update a todo');
@@ -87,7 +87,7 @@ const TodoItem: React.FC<TodoItemProps> = ({
         inputRef.current.focus();
       }
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Hide loader regardless of success or failure
     }
   };
 
