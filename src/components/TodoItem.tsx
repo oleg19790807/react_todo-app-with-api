@@ -120,7 +120,8 @@ const TodoItem: React.FC<TodoItemProps> = ({
         <input
           data-cy="TodoTitleField"
           type="text"
-          className="todo__title"
+          className="todo__title-field"
+          placeholder="Empty todo will be deleted"
           value={editTitle}
           onChange={handleInputChange}
           onBlur={handleSave}

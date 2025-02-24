@@ -254,6 +254,15 @@ export const App: React.FC = () => {
     setErrorMessage('');
     setShowError(false);
 
+    if (!newTitle.trim()) {
+      setErrorMessage('Title should not be empty');
+      setShowError(true);
+      setTimeout(() => setShowError(false), 3000);
+      setUpdatingTodoId(null);
+
+      return;
+    }
+
     try {
       await updateTodo(id, { title: newTitle });
       setTodos(prevTodos =>
@@ -262,6 +271,7 @@ export const App: React.FC = () => {
     } catch (error) {
       setErrorMessage('Unable to update a todo');
       setShowError(true);
+      setUpdatingTodoId(null); // Ensure the loader is hidden on fail
       throw error; // Ensure the error propagates to TodoItem
     } finally {
       setUpdatingTodoId(null);
