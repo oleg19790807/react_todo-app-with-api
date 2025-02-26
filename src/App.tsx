@@ -234,6 +234,34 @@ export const App: React.FC = () => {
     }
   };
 
+  // const handleUpdateTodoTitle = async (id: number, newTitle: string) => {
+  //   setLoadingTodoId(id);
+  //   setErrorMessage('');
+  //   setShowError(false);
+
+  //   if (!newTitle.trim()) {
+  //     setErrorMessage('Title should not be empty');
+  //     setShowError(true);
+  //     setTimeout(() => setShowError(false), 3000);
+  //     setLoadingTodoId(null);
+
+  //     return;
+  //   }
+
+  //   try {
+  //     await updateTodo(id, { title: newTitle });
+  //     setTodos(prevTodos =>
+  //       prevTodos.map(t => (t.id === id ? { ...t, title: newTitle } : t)),
+  //     );
+  //   } catch (error) {
+  //     setErrorMessage('Unable to update a todo');
+  //     setShowError(true);
+  //     setLoadingTodoId(null);
+  //     throw error;
+  //   } finally {
+  //     setLoadingTodoId(null);
+  //   }
+  // };
   const handleUpdateTodoTitle = async (id: number, newTitle: string) => {
     setLoadingTodoId(id);
     setErrorMessage('');
@@ -256,7 +284,7 @@ export const App: React.FC = () => {
     } catch (error) {
       setErrorMessage('Unable to update a todo');
       setShowError(true);
-      setLoadingTodoId(null);
+      setLoadingTodoId(null); // Ensure the loader is hidden on fail
       throw error;
     } finally {
       setLoadingTodoId(null);
