@@ -7,9 +7,8 @@ import { Todo } from '../types/Todo';
 interface TodoItemProps {
   todo: Todo;
   onDelete: (id: number) => void;
-  isDeleting: boolean;
-  onToggleComplete: (todo: Todo) => void;
   isUpdating: boolean;
+  onToggleComplete: (todo: Todo) => void;
   onSave: (id: number, title: string) => Promise<void>;
   onError: (message: string) => void;
 }
@@ -17,21 +16,18 @@ interface TodoItemProps {
 const TodoItem: React.FC<TodoItemProps> = ({
   todo,
   onDelete,
-  isDeleting,
-  onToggleComplete,
   isUpdating,
+  onToggleComplete,
   onSave,
   onError,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(todo.title);
-  const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
       inputRef.current.focus();
-      inputRef.current.select();
     }
   }, [isEditing]);
 
@@ -47,24 +43,19 @@ const TodoItem: React.FC<TodoItemProps> = ({
     const trimmedTitle = editTitle.trim();
 
     if (trimmedTitle === '') {
-      setIsLoading(true);
       try {
         await onDelete(todo.id);
-        setIsEditing(false); // Close only on successful deletion
+        setIsEditing(false);
       } catch (error: unknown) {
-        console.error('Error deleting todo:', error);
         onError('Unable to delete a todo');
-        setIsEditing(true); // Ensure edit mode stays active on failure
-        setEditTitle(''); // Reflect the empty state
-        // Keep input focused after failure
+        setIsEditing(true);
+        setEditTitle('');
         setTimeout(() => {
           if (inputRef.current) {
             inputRef.current.focus();
             inputRef.current.select();
           }
         }, 0);
-      } finally {
-        setIsLoading(false); // Hide loader regardless of success or failure
       }
 
       return;
@@ -76,18 +67,14 @@ const TodoItem: React.FC<TodoItemProps> = ({
       return;
     }
 
-    setIsLoading(true);
     try {
       await onSave(todo.id, trimmedTitle);
-      setIsEditing(false); // Close on successful save
+      setIsEditing(false);
     } catch (error: unknown) {
-      console.error('Error saving todo:', error);
       onError('Unable to update a todo');
       if (inputRef.current) {
         inputRef.current.focus();
       }
-    } finally {
-      setIsLoading(false); // Hide loader regardless of success or failure
     }
   };
 
@@ -150,7 +137,7 @@ const TodoItem: React.FC<TodoItemProps> = ({
           className="todo__remove"
           data-cy="TodoDelete"
           onClick={() => onDelete(todo.id)}
-          disabled={isDeleting}
+          disabled={isUpdating}
         >
           ×
         </button>
@@ -159,7 +146,7 @@ const TodoItem: React.FC<TodoItemProps> = ({
       <div
         data-cy="TodoLoader"
         className={classNames('modal overlay', {
-          'is-active': isDeleting || isUpdating || isLoading,
+          'is-active': isUpdating,
         })}
       >
         <div className="modal-background has-background-white-ter" />

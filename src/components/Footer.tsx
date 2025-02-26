@@ -9,7 +9,6 @@ interface FooterProps {
   setFilterStatus: React.Dispatch<React.SetStateAction<FilterStatus>>;
   onClearCompleted: () => void;
   className?: string;
-  'data-cy'?: string;
 }
 
 export const Footer: React.FC<FooterProps> = ({
@@ -18,7 +17,6 @@ export const Footer: React.FC<FooterProps> = ({
   setFilterStatus,
   onClearCompleted,
   className,
-  'data-cy': dataCy,
 }) => {
   const activeTodoCount = todos.filter(todo => !todo.completed).length;
 
@@ -37,7 +35,7 @@ export const Footer: React.FC<FooterProps> = ({
   ));
 
   return (
-    <footer className={className} data-cy={dataCy}>
+    <footer className={className} data-cy="Footer">
       <span className="todo-count" data-cy="TodosCounter">
         {`${activeTodoCount} item${activeTodoCount !== 1 ? 's' : ''} left`}
       </span>

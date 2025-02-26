@@ -1,23 +1,21 @@
 import React from 'react';
 import { Todo } from '../types/Todo';
-import TodoItem from '../components/TodoItem'; // Import the updated TodoItem
+import TodoItem from '../components/TodoItem';
 
 interface TodoListProps {
   todos: Todo[];
   onDelete: (id: number) => void;
-  deletingTodoId: number | null;
+  loadingTodoId: number | null;
   onToggleComplete: (todo: Todo) => void;
-  updatingTodoId: number | null;
   onSave: (id: number, title: string) => Promise<void>;
-  onError: (message: string) => void; // Add onError prop
+  onError: (message: string) => void;
 }
 
 export const TodoList: React.FC<TodoListProps> = ({
   todos,
   onDelete,
-  deletingTodoId,
+  loadingTodoId,
   onToggleComplete,
-  updatingTodoId,
   onSave,
   onError,
 }) => (
@@ -27,11 +25,10 @@ export const TodoList: React.FC<TodoListProps> = ({
         key={todo.id}
         todo={todo}
         onDelete={onDelete}
-        isDeleting={deletingTodoId === todo.id}
+        isUpdating={loadingTodoId === todo.id}
         onToggleComplete={onToggleComplete}
-        isUpdating={updatingTodoId === todo.id}
         onSave={onSave}
-        onError={onError} // Pass the onError prop down to TodoItem
+        onError={onError}
       />
     ))}
   </>

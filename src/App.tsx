@@ -24,8 +24,7 @@ export const App: React.FC = () => {
   const [isAddingTodo, setIsAddingTodo] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
-  const [deletingTodoId, setDeletingTodoId] = useState<number | null>(null);
-  const [updatingTodoId, setUpdatingTodoId] = useState<number | null>(null);
+  const [loadingTodoId, setLoadingTodoId] = useState<number | null>(null);
 
   const loadTodos = async () => {
     setIsLoading(true);
@@ -107,9 +106,10 @@ export const App: React.FC = () => {
   };
 
   const handleDeleteTodo = async (id: number) => {
-    setDeletingTodoId(id);
+    setLoadingTodoId(id);
     setErrorMessage('');
     setShowError(false);
+
     try {
       await deleteTodo(id);
       setTodos(prevTodos => prevTodos.filter(todo => todo.id !== id));
@@ -118,7 +118,7 @@ export const App: React.FC = () => {
       setShowError(true);
       setTimeout(() => setShowError(false), 3000);
     } finally {
-      setDeletingTodoId(null);
+      setLoadingTodoId(null);
       if (inputRef.current) {
         inputRef.current.focus();
       }
@@ -133,9 +133,7 @@ export const App: React.FC = () => {
 
     const deletePromises = completedTodos.map(todo =>
       deleteTodo(todo.id)
-        .then(() => {
-          return todo.id;
-        })
+        .then(() => todo.id)
         .catch(() => {
           setErrorMessage('Unable to delete a todo');
           setShowError(true);
@@ -144,11 +142,11 @@ export const App: React.FC = () => {
         }),
     );
 
-    const results: (number | null)[] = await Promise.all(deletePromises);
+    const results = await Promise.allSettled(deletePromises);
 
-    const successfullyDeletedIds = results.filter(
-      (id): id is number => id !== null,
-    );
+    const successfullyDeletedIds = results
+      .filter(result => result.status === 'fulfilled' && result.value !== null)
+      .map(result => (result as PromiseFulfilledResult<number>).value);
 
     setTodos(prevTodos =>
       prevTodos.filter(todo => !successfullyDeletedIds.includes(todo.id)),
@@ -166,34 +164,21 @@ export const App: React.FC = () => {
     setShowError(false);
 
     try {
-      if (!areAllCompleted) {
-        const todosToUpdate = todos.filter(todo => !todo.completed);
+      const todosToUpdate = areAllCompleted
+        ? todos
+        : todos.filter(todo => !todo.completed);
 
-        const updatePromises = todosToUpdate.map(todo =>
-          updateTodo(todo.id, { completed: true }),
-        );
+      const updatePromises = todosToUpdate.map(todo =>
+        updateTodo(todo.id, { completed: !areAllCompleted }),
+      );
 
-        const updatedTodos = await Promise.all(updatePromises);
+      const updatedTodos = await Promise.all(updatePromises);
 
-        setTodos(prevTodos =>
-          prevTodos.map(
-            todo =>
-              updatedTodos.find(updated => updated.id === todo.id) || todo,
-          ),
-        );
-      } else {
-        const updatePromises = todos.map(todo =>
-          updateTodo(todo.id, { completed: false }),
-        );
-        const updatedTodos = await Promise.all(updatePromises);
-
-        setTodos(prevTodos =>
-          prevTodos.map(
-            todo =>
-              updatedTodos.find(updated => updated.id === todo.id) || todo,
-          ),
-        );
-      }
+      setTodos(prevTodos =>
+        prevTodos.map(
+          todo => updatedTodos.find(updated => updated.id === todo.id) || todo,
+        ),
+      );
     } catch (error) {
       setErrorMessage('Unable to toggle all todos');
       setShowError(true);
@@ -227,7 +212,7 @@ export const App: React.FC = () => {
   });
 
   const handleToggleComplete = async (todo: Todo) => {
-    setUpdatingTodoId(todo.id);
+    setLoadingTodoId(todo.id);
     setErrorMessage('');
     setShowError(false);
 
@@ -245,12 +230,12 @@ export const App: React.FC = () => {
       setErrorMessage('Unable to update a todo');
       setShowError(true);
     } finally {
-      setUpdatingTodoId(null);
+      setLoadingTodoId(null);
     }
   };
 
   const handleUpdateTodoTitle = async (id: number, newTitle: string) => {
-    setUpdatingTodoId(id);
+    setLoadingTodoId(id);
     setErrorMessage('');
     setShowError(false);
 
@@ -258,7 +243,7 @@ export const App: React.FC = () => {
       setErrorMessage('Title should not be empty');
       setShowError(true);
       setTimeout(() => setShowError(false), 3000);
-      setUpdatingTodoId(null);
+      setLoadingTodoId(null);
 
       return;
     }
@@ -271,10 +256,10 @@ export const App: React.FC = () => {
     } catch (error) {
       setErrorMessage('Unable to update a todo');
       setShowError(true);
-      setUpdatingTodoId(null); // Ensure the loader is hidden on fail
-      throw error; // Ensure the error propagates to TodoItem
+      setLoadingTodoId(null);
+      throw error;
     } finally {
-      setUpdatingTodoId(null);
+      setLoadingTodoId(null);
     }
   };
 
@@ -323,11 +308,9 @@ export const App: React.FC = () => {
               <TodoList
                 todos={filteredTodos}
                 onDelete={handleDeleteTodo}
-                deletingTodoId={deletingTodoId}
+                loadingTodoId={loadingTodoId}
                 onToggleComplete={handleToggleComplete}
-                updatingTodoId={updatingTodoId}
                 onSave={handleUpdateTodoTitle}
-                //Pass the handleError function to TodoList
                 onError={handleError}
               />
               {tempTodo && (
